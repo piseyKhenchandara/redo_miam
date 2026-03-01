@@ -11,3 +11,7 @@ enum RestaurantType {
 
   const RestaurantType({required this.color});
 }
+
+// RestaurantType type = Restaurant.french.
+// => why : restaurant.type.name? 
+// why not :restaurant.type.Restauant.french
