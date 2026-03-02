@@ -59,6 +59,8 @@ class _RestaurantsViewState extends State<RestaurantsView> {
               },
             ),
           ),
+
+          
         ],
       ), // YOUR CODE
     );
