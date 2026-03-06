@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⛏️ CraftFolio - Minecraft Portfolio</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --dirt: #8B6914;
+    --grass: #5D8C2A;
+    --stone: #7F7F7F;
+    --diamond: #4AEDD9;
+    --gold: #FCDB05;
+    --obsidian: #1B1029;
+    --redstone: #FF0000;
+    --lava: #CF4913;
+    --water: #2389DA;
+    --wood: #BC9862;
+    --leaf: #2D8C2D;
+    --sky-day: #78A7FF;
+    --sky-night: #0a0a2e;
+    --xp-green: #80FF20;
+    --enchant-purple: #A020F0;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Press Start 2P', monospace;
+    background: var(--sky-day);
+    color: #fff;
+    overflow-x: hidden;
+    image-rendering: pixelated;
+    transition: background 1.5s ease;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect x='2' y='2' width='28' height='28' fill='%23555' stroke='%23333' stroke-width='2'/%3E%3Crect x='6' y='6' width='20' height='20' fill='%23888'/%3E%3Crect x='10' y='10' width='12' height='12' fill='%23aaa'/%3E%3C/svg%3E") 16 16, crosshair;
+  }
+
+  body.night { background: var(--sky-night); }
+
+  /* ===== LOADING SCREEN ===== */
+  #loader {
+    position: fixed; inset: 0; z-index: 10000;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: var(--dirt);
+    background-image:
+      repeating-conic-gradient(#7a5c12 0% 25%, #8B6914 0% 50%) 0 0 / 40px 40px;
+    transition: opacity 0.8s;
+  }
+  #loader.hidden { opacity: 0; pointer-events: none; }
+  #loader h1 { font-size: 1.5rem; margin-bottom: 40px; text-shadow: 3px 3px #000; color: var(--gold); }
+  .loader-bar-outer {
+    width: 400px; max-width: 80vw; height: 30px;
+    background: #222; border: 4px solid #555;
+    image-rendering: pixelated;
+  }
+  .loader-bar-inner {
+    height: 100%; width: 0%; background: var(--xp-green);
+    box-shadow: inset 0 -4px #5a9a10;
+    transition: width 0.3s;
+  }
+  .loader-text { margin-top: 15px; font-size: 0.6rem; color: #aaa; }
+
+  /* ===== FLOATING BLOCKS BG ===== */
+  .block-bg {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  }
+  .floating-block {
+    position: absolute; width: 40px; height: 40px;
+    image-rendering: pixelated;
+    animation: floatBlock linear infinite;
+    opacity: 0.35;
+  }
+  @keyframes floatBlock {
+    0% { transform: translateY(110vh) rotate(0deg); }
+    100% { transform: translateY(-10vh) rotate(720deg); }
+  }
+
+  /* ===== DAY/NIGHT TOGGLE ===== */
+  .dn-toggle {
+    position: fixed; top: 20px; right: 20px; z-index: 999;
+    width: 60px; height: 60px; border: 4px solid #333;
+    background: var(--gold); font-size: 1.8rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.3s;
+    box-shadow: inset -4px -4px #00000044;
+  }
+  .dn-toggle:hover { transform: scale(1.1); }
+  body.night .dn-toggle { background: #334; }
+
+  /* ===== MAIN CONTENT ===== */
+  .content { position: relative; z-index: 1; }
+
+  /* ===== HERO ===== */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    position: relative; padding: 20px;
+  }
+  .hero-title {
+    font-size: clamp(1.5rem, 5vw, 3.5rem);
+    text-shadow: 4px 4px #000, 0 0 20px var(--diamond);
+    margin-bottom: 20px;
+    animation: titlePulse 3s ease-in-out infinite;
+  }
+  @keyframes titlePulse {
+    0%,100% { text-shadow: 4px 4px #000, 0 0 20px var(--diamond); }
+    50% { text-shadow: 4px 4px #000, 0 0 40px var(--diamond), 0 0 80px var(--diamond); }
+  }
+  .hero-sub {
+    font-size: clamp(0.5rem, 2vw, 0.9rem);
+    color: #ddd; margin-bottom: 30px;
+    text-shadow: 2px 2px #000;
+  }
+  .hero-skin {
+    width: 120px; height: 120px; margin-bottom: 30px;
+    background: var(--diamond);
+    border: 4px solid #333;
+    box-shadow: inset -6px -6px rgba(0,0,0,0.3);
+    animation: skinBob 2s ease-in-out infinite;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3rem;
+  }
+  @keyframes skinBob {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+
+  /* ===== CREEPER FACE (inside hero-skin) ===== */
+  .creeper-face {
+    display: grid; grid-template-columns: repeat(8,12px); grid-template-rows: repeat(8,12px);
+  }
+  .c { background: #2d8c2d; } .b { background: #1a1a1a; }
+
+  /* ===== SECTION STYLES ===== */
+  section {
+    max-width: 1000px; margin: 0 auto; padding: 80px 20px;
+  }
+  .section-title {
+    font-size: clamp(1rem, 3vw, 1.8rem);
+    text-align: center; margin-bottom: 50px;
+    text-shadow: 3px 3px #000;
+    position: relative;
+  }
+  .section-title::after {
+    content: ''; display: block;
+    width: 60%; height: 4px; margin: 15px auto 0;
+    background: repeating-linear-gradient(90deg, var(--gold) 0 10px, transparent 10px 14px);
+  }
+
+  /* ===== ABOUT - SIGN BOARD ===== */
+  .sign-board {
+    background: var(--wood);
+    border: 6px solid #8B6D3A;
+    padding: 30px; max-width: 700px; margin: 0 auto;
+    box-shadow: inset -6px -6px rgba(0,0,0,0.25), 6px 6px 0 #00000044;
+    position: relative;
+  }
+  .sign-board::before {
+    content: ''; position: absolute;
+    bottom: -40px; left: 50%; transform: translateX(-50%);
+    width: 12px; height: 40px; background: #6B4226;
+  }
+  .sign-board p {
+    font-size: 0.6rem; line-height: 2; color: #2a1a00;
+    text-shadow: 1px 1px #d4b07a;
+  }
+
+  /* ===== SKILLS - XP BARS ===== */
+  .skills-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+    gap: 25px;
+  }
+  .skill-item { display: flex; flex-direction: column; gap: 8px; }
+  .skill-label {
+    font-size: 0.55rem; display: flex;
+    justify-content: space-between; align-items: center;
+  }
+  .skill-label .lvl { color: var(--xp-green); }
+  .xp-bar-outer {
+    height: 20px; background: #1a1a1a;
+    border: 3px solid #444; position: relative;
+    overflow: hidden;
+  }
+  .xp-bar-inner {
+    height: 100%; width: 0;
+    background: linear-gradient(180deg, var(--xp-green) 40%, #5a9a10 100%);
+    box-shadow: inset 0 -3px #3a7a00;
+    transition: width 1.5s ease;
+  }
+  .xp-bar-outer::after {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, transparent 0 18px, #00000022 18px 20px);
+  }
+
+  /* ===== PROJECTS - CRAFTING TABLE ===== */
+  .projects-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+    gap: 30px;
+  }
+  .project-card {
+    background: #3a3a3a;
+    border: 5px solid #555;
+    box-shadow: inset -4px -4px rgba(0,0,0,0.4), inset 4px 4px rgba(255,255,255,0.05);
+    padding: 0; overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+  }
+  .project-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 0 30px var(--enchant-purple), inset -4px -4px rgba(0,0,0,0.4);
+  }
+  .project-card:hover .enchant-overlay { opacity: 1; }
+  .enchant-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(160,32,240,0.15));
+    opacity: 0; transition: opacity 0.5s; pointer-events: none;
+  }
+  .project-img {
+    height: 160px; display: flex; align-items: center; justify-content: center;
+    font-size: 4rem;
+  }
+  .project-info { padding: 15px; }
+  .project-info h3 { font-size: 0.7rem; margin-bottom: 10px; color: var(--gold); }
+  .project-info p { font-size: 0.5rem; line-height: 1.8; color: #bbb; }
+  .project-tags {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    padding: 10px 15px 15px;
+  }
+  .tag {
+    background: #555; border: 2px solid #777;
+    padding: 4px 8px; font-size: 0.4rem; color: var(--diamond);
+  }
+
+  /* ===== CONTACT - CHAT ===== */
+  .chat-box {
+    max-width: 600px; margin: 0 auto;
+    background: rgba(0,0,0,0.75);
+    border: 4px solid #333; padding: 20px;
+  }
+  .chat-messages {
+    max-height: 200px; overflow-y: auto;
+    margin-bottom: 15px; padding: 10px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .chat-msg { font-size: 0.5rem; line-height: 1.6; }
+  .chat-msg .name { color: var(--gold); }
+  .chat-msg .sys { color: #aaa; font-style: italic; }
+  .chat-input-row { display: flex; gap: 8px; }
+  .chat-input-row input, .chat-input-row textarea {
+    flex: 1; background: #1a1a1a; border: 3px solid #555;
+    color: #fff; font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem; padding: 8px; outline: none;
+    resize: none;
+  }
+  .chat-input-row input:focus, .chat-input-row textarea:focus {
+    border-color: var(--xp-green);
+  }
+  .chat-send {
+    background: var(--grass); border: 3px solid #3a6a1a;
+    color: #fff; font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem; padding: 8px 16px; cursor: pointer;
+    box-shadow: inset -3px -3px rgba(0,0,0,0.3);
+    transition: all 0.2s;
+  }
+  .chat-send:hover { background: #7ab83a; transform: scale(1.05); }
+  .chat-send:active { transform: scale(0.95); box-shadow: inset 3px 3px rgba(0,0,0,0.3); }
+
+  /* ===== HOTBAR ===== */
+  .hotbar {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    z-index: 1000; display: flex; gap: 4px;
+    background: rgba(0,0,0,0.6); padding: 6px;
+    border: 3px solid #555;
+  }
+  .hotbar-slot {
+    width: 52px; height: 52px;
+    background: #555; border: 3px solid #333;
+    box-shadow: inset -3px -3px rgba(0,0,0,0.4), inset 3px 3px rgba(255,255,255,0.08);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s;
+    text-decoration: none; color: #fff;
+    position: relative;
+  }
+  .hotbar-slot:hover, .hotbar-slot.active {
+    border-color: #fff;
+    box-shadow: inset -3px -3px rgba(0,0,0,0.4), 0 0 15px rgba(255,255,255,0.3);
+  }
+  .hotbar-slot .icon { font-size: 1.3rem; }
+  .hotbar-slot .slot-label {
+    font-size: 0.25rem; margin-top: 2px;
+    font-family: 'Press Start 2P', monospace;
+  }
+  .hotbar-slot .slot-num {
+    position: absolute; top: 2px; left: 4px;
+    font-size: 0.35rem; color: #aaa;
+    font-family: 'Press Start 2P', monospace;
+  }
+
+  /* ===== ACHIEVEMENT POPUP ===== */
+  .achievement {
+    position: fixed; top: -100px; left: 50%;
+    transform: translateX(-50%); z-index: 9999;
+    background: #222; border: 4px solid #555;
+    padding: 12px 25px; display: flex;
+    align-items: center; gap: 15px;
+    transition: top 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    white-space: nowrap;
+  }
+  .achievement.show { top: 30px; }
+  .achievement .ach-icon { font-size: 2rem; }
+  .achievement .ach-text h4 {
+    font-size: 0.5rem; color: var(--gold); margin-bottom: 5px;
+  }
+  .achievement .ach-text p { font-size: 0.4rem; color: #ccc; }
+
+  /* ===== BREAK PARTICLES ===== */
+  .break-particle {
+    position: fixed; width: 8px; height: 8px;
+    pointer-events: none; z-index: 9998;
+    image-rendering: pixelated;
+    animation: breakAnim 0.8s ease-out forwards;
+  }
+  @keyframes breakAnim {
+    0% { opacity: 1; transform: translate(0,0) scale(1) rotate(0deg); }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3) rotate(360deg); }
+  }
+
+  /* ===== GROUND ===== */
+  .ground {
+    height: 120px; position: relative; z-index: 1;
+    background:
+      linear-gradient(180deg, var(--grass) 0 20px, var(--dirt) 20px 60px, var(--stone) 60px);
+    border-top: 4px solid #3a6a1a;
+    margin-top: 40px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ground p { font-size: 0.5rem; text-shadow: 2px 2px #000; margin-top: -20px; }
+  .ground a { color: var(--diamond); text-decoration: none; }
+  .ground a:hover { color: #fff; }
+
+  /* ===== STARS (night mode) ===== */
+  .stars {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    opacity: 0; transition: opacity 1.5s;
+  }
+  body.night .stars { opacity: 1; }
+  .star {
+    position: absolute; background: #fff; border-radius: 0;
+    animation: twinkle 2s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle {
+    0% { opacity: 0.3; } 100% { opacity: 1; }
+  }
+
+  /* ===== TORCH GLOW ===== */
+  .torch-container {
+    position: fixed; z-index: 0; pointer-events: none;
+    opacity: 0; transition: opacity 1.5s;
+  }
+  body.night .torch-container { opacity: 1; }
+  .torch {
+    position: fixed; font-size: 2rem;
+    filter: drop-shadow(0 0 20px #ff8800) drop-shadow(0 0 40px #ff440088);
+    animation: torchFlicker 0.5s ease-in-out infinite alternate;
+  }
+  @keyframes torchFlicker {
+    0% { filter: drop-shadow(0 0 20px #ff8800) drop-shadow(0 0 40px #ff440088); }
+    100% { filter: drop-shadow(0 0 25px #ffaa00) drop-shadow(0 0 50px #ff660088); }
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 600px) {
+    .hotbar-slot { width: 40px; height: 40px; }
+    .hotbar-slot .icon { font-size: 1rem; }
+    .hotbar-slot .slot-label { display: none; }
+    .hero-title { font-size: 1.2rem; }
+    .creeper-face { grid-template-columns: repeat(8,8px); grid-template-rows: repeat(8,8px); }
+  }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 14px; }
+  ::-webkit-scrollbar-track { background: #2a2a2a; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--stone);
+    border: 3px solid #2a2a2a;
+    image-rendering: pixelated;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #999; }
+
+  /* ===== HEART BAR ===== */
+  .heart-bar {
+    position: fixed; top: 20px; left: 20px; z-index: 999;
+    display: flex; gap: 2px;
+  }
+  .heart { font-size: 1rem; filter: drop-shadow(1px 1px 0 #000); }
+
+  /* ===== INVENTORY MODAL ===== */
+  .inv-overlay {
+    position: fixed; inset: 0; z-index: 10001;
+    background: rgba(0,0,0,0.7);
+    display: none; align-items: center; justify-content: center;
+  }
+  .inv-overlay.open { display: flex; }
+  .inv-modal {
+    background: #c6c6c6; border: 4px solid #555;
+    padding: 20px; max-width: 500px; width: 90%;
+    box-shadow: inset -4px -4px #8b8b8b, inset 4px 4px #fff;
+  }
+  .inv-modal h2 {
+    font-size: 0.7rem; color: #333; margin-bottom: 15px;
+    text-shadow: 1px 1px #ddd;
+  }
+  .inv-grid {
+    display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px;
+  }
+  .inv-cell {
+    aspect-ratio: 1; background: #8b8b8b;
+    border: 3px solid; border-color: #373737 #fff #fff #373737;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .inv-cell:hover { transform: scale(1.1); }
+  .inv-close {
+    margin-top: 10px; background: #aaa;
+    border: 3px solid; border-color: #fff #555 #555 #fff;
+    padding: 6px 12px; font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem; cursor: pointer; color: #333;
+  }
+  .inv-close:hover { background: #bbb; }
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="loader">
+  <h1>⛏️ CraftFolio</h1>
+  <div class="loader-bar-outer">
+    <div class="loader-bar-inner" id="loaderBar"></div>
+  </div>
+  <p class="loader-text" id="loaderText">Loading terrain...</p>
+</div>
+
+<!-- ACHIEVEMENT POPUP -->
+<div class="achievement" id="achievement">
+  <div class="ach-icon">🏆</div>
+  <div class="ach-text">
+    <h4>Achievement Get!</h4>
+    <p>Visited the Portfolio</p>
+  </div>
+</div>
+
+<!-- STARS -->
+<div class="stars" id="stars"></div>
+
+<!-- TORCHES -->
+<div class="torch-container">
+  <div class="torch" style="top:30%;left:5%;">🔥</div>
+  <div class="torch" style="top:60%;right:5%;">🔥</div>
+  <div class="torch" style="top:80%;left:8%;">🔥</div>
+</div>
+
+<!-- FLOATING BLOCKS -->
+<div class="block-bg" id="blockBg"></div>
+
+<!-- HEART BAR -->
+<div class="heart-bar" id="heartBar">
+  <span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span>
+  <span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span>
+  <span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span>
+  <span class="heart">❤️</span>
+</div>
+
+<!-- DAY/NIGHT TOGGLE -->
+<div class="dn-toggle" id="dnToggle" title="Toggle Day/Night">☀️</div>
+
+<!-- INVENTORY OVERLAY -->
+<div class="inv-overlay" id="invOverlay">
+  <div class="inv-modal">
+    <h2>📦 Inventory - My Tools & Tech</h2>
+    <div class="inv-grid" id="invGrid"></div>
+    <button class="inv-close" onclick="document.getElementById('invOverlay').classList.remove('open')">Close [Esc]</button>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="content">
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero-skin">
+      <div class="creeper-face">
+        <div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+        <div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+        <div class="c"></div><div class="b"></div><div class="b"></div><div class="c"></div>
+        <div class="c"></div><div class="b"></div><div class="b"></div><div class="c"></div>
+        <div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+        <div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+        <div class="c"></div><div class="c"></div><div class="b"></div><div class="b"></div>
+        <div class="b"></div><div class="b"></div><div class="c"></div><div class="c"></div>
+        <div class="c"></div><div class="b"></div><div class="c"></div><div class="c"></div>
+        <div class="c"></div><div class="c"></div><div class="b"></div><div class="c"></div>
+        <div class="c"></div><div class="b"></div><div class="c"></div><div class="c"></div>
+        <div class="c"></div><div class="c"></div><div class="b"></div><div class="c"></div>
+        <div class="b"></div><div class="c"></div><div class="c"></div><div class="b"></div>
+        <div class="b"></div><div class="c"></div><div class="c"></div><div class="b"></div>
+      </div>
+    </div>
+    <h1 class="hero-title">⛏️ STEVE_DEV</h1>
+    <p class="hero-sub">&lt; Full-Stack Crafter &amp; Redstone Engineer &gt;</p>
+    <p class="hero-sub" style="font-size:0.45rem; color:#aaa;">Press E for Inventory &nbsp;|&nbsp; Scroll to Explore</p>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <h2 class="section-title">📜 About Me</h2>
+    <div class="sign-board">
+      <p>
+        🟫 Welcome, traveler! I'm a passionate developer who builds
+        digital worlds block by block. With years of experience
+        in web development, I craft pixel-perfect interfaces
+        and robust backends like a true redstone engineer.
+        <br><br>
+        🔨 My tools: JavaScript, Python, React, Node.js,
+        and a diamond pickaxe for tough problems.
+        <br><br>
+        ⭐ When I'm not coding, I'm exploring new technologies,
+        contributing to open-source, and surviving creeper attacks.
+      </p>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <h2 class="section-title">⚔️ Skills & Experience</h2>
+    <div class="skills-grid">
+      <div class="skill-item">
+        <div class="skill-label"><span>⚡ JavaScript</span><span class="lvl">Lvl 95</span></div>
+        <div class="xp-bar-outer"><div class="xp-bar-inner" data-width="95"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label"><span>⚛️ React</span><span class="lvl">Lvl 90</span></div>
+        <div class="xp-bar-outer"><div class="xp-bar-inner" data-width="90"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label"><span>🐍 Python</span><span class="lvl">Lvl 85</span></div>
+        <div class="xp-bar-outer"><div class="xp-bar-inner" data-width="85"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label"><span>🟢 Node.js</span><span class="lvl">Lvl 88</span></div>
+        <div class="xp-bar-outer"><div class="xp-bar-inner" data-width="88"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label"><span>🎨 CSS / Design</span><span class="lvl">Lvl 92</span></div>
+        <div class="xp-bar-outer"><div class="xp-bar-inner" data-width="92"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label"><span>🗄️ Databases</span><span class="lvl">Lvl 80</span></div>
+        <div class="xp-bar-outer"><div class="xp-bar-inner" data-width="80"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label"><span>🐳 Docker</span><span class="lvl">Lvl 75</span></div>
+        <div class="xp-bar-outer"><div class="xp-bar-inner" data-width="75"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label"><span>🔴 Redstone Logic</span><span class="lvl">Lvl 100</span></div>
+        <div class="xp-bar-outer"><div class="xp-bar-inner" data-width="100"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <h2 class="section-title">🏗️ Builds & Projects</h2>
+    <div class="projects-grid">
+
+      <div class="project-card">
+        <div class="enchant-overlay"></div>
+        <div class="project-img" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">🏰</div>
+        <div class="project-info">
+          <h3>Castle CMS</h3>
+          <p>A headless CMS built block by block. Manage your content kingdom with ease.</p>
+        </div>
+        <div class="project-tags">
+          <span class="tag">React</span><span class="tag">GraphQL</span><span class="tag">Node.js</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="enchant-overlay"></div>
+        <div class="project-img" style="background:linear-gradient(135deg,#0a3d62,#1e3799);">🌊</div>
+        <div class="project-info">
+          <h3>Ocean Monitor</h3>
+          <p>Real-time dashboard for monitoring ocean data streams. Dive deep into analytics.</p>
+        </div>
+        <div class="project-tags">
+          <span class="tag">Python</span><span class="tag">D3.js</span><span class="tag">WebSocket</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="enchant-overlay"></div>
+        <div class="project-img" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe);">🔮</div>
+        <div class="project-info">
+          <h3>Enchant AI</h3>
+          <p>Machine learning toolkit that enchants your data with predictive powers.</p>
+        </div>
+        <div class="project-tags">
+          <span class="tag">TensorFlow</span><span class="tag">Python</span><span class="tag">FastAPI</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="enchant-overlay"></div>
+        <div class="project-img" style="background:linear-gradient(135deg,#b71540,#e55039);">💎</div>
+        <div class="project-info">
+          <h3>DiamondPay</h3>
+          <p>Crypto payment gateway. Trade diamonds (tokens) with blazing speed.</p>
+        </div>
+        <div class="project-tags">
+          <span class="tag">Solidity</span><span class="tag">Web3.js</span><span class="tag">React</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="enchant-overlay"></div>
+        <div class="project-img" style="background:linear-gradient(135deg,#2d6a4f,#52b788);">🌿</div>
+        <div class="project-info">
+          <h3>BioForest</h3>
+          <p>Sustainability tracker for reforestation projects. Plant trees, save biomes.</p>
+        </div>
+        <div class="project-tags">
+          <span class="tag">Vue.js</span><span class="tag">Firebase</span><span class="tag">Maps API</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="enchant-overlay"></div>
+        <div class="project-img" style="background:linear-gradient(135deg,#e17055,#fdcb6e);">🧨</div>
+        <div class="project-info">
+          <h3>TNT Deploy</h3>
+          <p>CI/CD pipeline tool that blasts your code into production. Explosive speed.</p>
+        </div>
+        <div class="project-tags">
+          <span class="tag">Go</span><span class="tag">Docker</span><span class="tag">K8s</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <h2 class="section-title">💬 Send a Message</h2>
+    <div class="chat-box">
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-msg"><span class="sys">[Server] Welcome to the chat! Send me a message below.</span></div>
+        <div class="chat-msg"><span class="name">&lt;Steve_Dev&gt;</span> Hey! Looking for a developer? Let's talk! 🔨</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="chat-input-row">
+          <input type="text" id="chatName" placeholder="Your name..." maxlength="20">
+        </div>
+        <div class="chat-input-row">
+          <input type="email" id="chatEmail" placeholder="Your email...">
+        </div>
+        <div class="chat-input-row">
+          <textarea id="chatMsg" rows="2" placeholder="Type your message..."></textarea>
+          <button class="chat-send" onclick="sendChat()">Send ➤</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- GROUND / FOOTER -->
+<div class="ground">
+  <p>⛏️ Crafted with ❤️ &amp; Redstone &nbsp;|&nbsp; <a href="#home">Back to Top ↑</a></p>
+</div>
+
+<!-- HOTBAR -->
+<nav class="hotbar" id="hotbar">
+  <a href="#home" class="hotbar-slot active" data-section="home">
+    <span class="slot-num">1</span><span class="icon">🏠</span><span class="slot-label">Home</span>
+  </a>
+  <a href="#about" class="hotbar-slot" data-section="about">
+    <span class="slot-num">2</span><span class="icon">📜</span><span class="slot-label">About</span>
+  </a>
+  <a href="#skills" class="hotbar-slot" data-section="skills">
+    <span class="slot-num">3</span><span class="icon">⚔️</span><span class="slot-label">Skills</span>
+  </a>
+  <a href="#projects" class="hotbar-slot" data-section="projects">
+    <span class="slot-num">4</span><span class="icon">🏗️</span><span class="slot-label">Builds</span>
+  </a>
+  <a href="#contact" class="hotbar-slot" data-section="contact">
+    <span class="slot-num">5</span><span class="icon">💬</span><span class="slot-label">Chat</span>
+  </a>
+  <div class="hotbar-slot" onclick="document.getElementById('invOverlay').classList.add('open')">
+    <span class="slot-num">E</span><span class="icon">📦</span><span class="slot-label">Inv</span>
+  </div>
+</nav>
+
+<script>
+// ===== LOADER =====
+const loaderTexts = [
+  'Loading terrain...', 'Generating caves...', 'Planting trees...',
+  'Spawning mobs...', 'Building portfolio...', 'Enchanting items...',
+  'Brewing potions...', 'Placing redstone...', 'Almost ready...'
+];
+let loadProgress = 0;
+const loaderInterval = setInterval(() => {
+  loadProgress += Math.random() * 15 + 5;
+  if (loadProgress > 100) loadProgress = 100;
+  document.getElementById('loaderBar').style.width = loadProgress + '%';
+  document.getElementById('loaderText').textContent =
+    loaderTexts[Math.min(Math.floor(loadProgress / 12), loaderTexts.length - 1)];
+  if (loadProgress >= 100) {
+    clearInterval(loaderInterval);
+    setTimeout(() => {
+      document.getElementById('loader').classList.add('hidden');
+      setTimeout(() => showAchievement('🏆', 'Achievement Get!', 'Visited the Portfolio'), 800);
+    }, 500);
+  }
+}, 300);
+
+// ===== ACHIEVEMENT =====
+function showAchievement(icon, title, desc) {
+  const ach = document.getElementById('achievement');
+  ach.querySelector('.ach-icon').textContent = icon;
+  ach.querySelector('h4').textContent = title;
+  ach.querySelector('p').textContent = desc;
+  ach.classList.add('show');
+  setTimeout(() => ach.classList.remove('show'), 4000);
+}
+
+// ===== DAY/NIGHT =====
+const dnToggle = document.getElementById('dnToggle');
+dnToggle.addEventListener('click', () => {
+  document.body.classList.toggle('night');
+  dnToggle.textContent = document.body.classList.contains('night') ? '🌙' : '☀️';
+});
+
+// ===== FLOATING BLOCKS =====
+const blockEmojis = ['🟫','🟩','⬜','💎','🟨','🟪','🔴','🟧','🧱','🪨','🪵','🍃'];
+const blockBg = document.getElementById('blockBg');
+for (let i = 0; i < 25; i++) {
+  const block = document.createElement('div');
+  block.className = 'floating-block';
+  block.textContent = blockEmojis[Math.floor(Math.random() * blockEmojis.length)];
+  block.style.left = Math.random() * 100 + '%';
+  block.style.fontSize = (Math.random() * 20 + 20) + 'px';
+  block.style.animationDuration = (Math.random() * 15 + 10) + 's';
+  block.style.animationDelay = (Math.random() * 20) + 's';
+  blockBg.appendChild(block);
+}
+
+// ===== STARS =====
+const starsContainer = document.getElementById('stars');
+for (let i = 0; i < 100; i++) {
+  const star = document.createElement('div');
+  star.className = 'star';
+  const size = Math.random() * 3 + 1;
+  star.style.width = size + 'px';
+  star.style.height = size + 'px';
+  star.style.left = Math.random() * 100 + '%';
+  star.style.top = Math.random() * 100 + '%';
+  star.style.animationDelay = Math.random() * 2 + 's';
+  starsContainer.appendChild(star);
+}
+
+// ===== BLOCK BREAK PARTICLES =====
+const particleColors = ['#8B6914','#5D8C2A','#7F7F7F','#4AEDD9','#BC9862','#CF4913','#FCDB05'];
+document.addEventListener('click', (e) => {
+  for (let i = 0; i < 8; i++) {
+    const p = document.createElement('div');
+    p.className = 'break-particle';
+    p.style.left = e.clientX + 'px';
+    p.style.top = e.clientY + 'px';
+    p.style.background = particleColors[Math.floor(Math.random() * particleColors.length)];
+    const angle = Math.random() * Math.PI * 2;
+    const dist = Math.random() * 80 + 30;
+    p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    p.style.setProperty('--dy', Math.sin(angle) * dist - 30 + 'px');
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 800);
+  }
+});
+
+// ===== HOTBAR ACTIVE STATE =====
+const sections = document.querySelectorAll('section[id]');
+const hotbarSlots = document.querySelectorAll('.hotbar-slot[data-section]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 300) current = s.id;
+  });
+  hotbarSlots.forEach(slot => {
+    slot.classList.toggle('active', slot.dataset.section === current);
+  });
+});
+
+// ===== NUMBER KEYS FOR HOTBAR =====
+document.addEventListener('keydown', (e) => {
+  if (e.key >= '1' && e.key <= '5') {
+    e.preventDefault();
+    hotbarSlots[parseInt(e.key) - 1]?.click();
+  }
+  if (e.key === 'e' || e.key === 'E') {
+    const inv = document.getElementById('invOverlay');
+    inv.classList.toggle('open');
+  }
+  if (e.key === 'Escape') {
+    document.getElementById('invOverlay').classList.remove('open');
+  }
+});
+
+// ===== XP BAR ANIMATION =====
+const xpObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.width = entry.target.dataset.width + '%';
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.xp-bar-inner').forEach(bar => xpObserver.observe(bar));
+
+// ===== CHAT =====
+function sendChat() {
+  const name = document.getElementById('chatName').value.trim() || 'Player';
+  const email = document.getElementById('chatEmail').value.trim();
+  const msg = document.getElementById('chatMsg').value.trim();
+  if (!msg) return;
+  const chatMessages = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg';
+  div.innerHTML = `<span class="name">&lt;${name}&gt;</span> ${msg}`;
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  document.getElementById('chatMsg').value = '';
+
+  setTimeout(() => {
+    const replies = [
+      "Thanks for reaching out! I'll get back to you soon! ⛏️",
+      "Message received! *places redstone torch* 🔴",
+      "Awesome! Let me craft a response for you! 🔨",
+      "Your message has been enchanted & stored! ✨"
+    ];
+    const reply = document.createElement('div');
+    reply.className = 'chat-msg';
+    reply.innerHTML = `<span class="name">&lt;Steve_Dev&gt;</span> ${replies[Math.floor(Math.random() * replies.length)]}`;
+    chatMessages.appendChild(reply);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }, 1500);
+
+  showAchievement('💌', 'Achievement Get!', 'Sent a Message!');
+}
+
+document.getElementById('chatMsg').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+});
+
+// ===== INVENTORY =====
+const invItems = [
+  '⚡','⚛️','🐍','🟢','🎨','🗄️','🐳','🔧','🧪',
+  '📱','🖥️','🌐','🔒','📊','🤖','☁️','🎮','💡',
+  '🔥','📦','🧩','🛡️','🗡️','🏹','⛏️','🪓','🔱'
+];
+const invGrid = document.getElementById('invGrid');
+invItems.forEach(item => {
+  const cell = document.createElement('div');
+  cell.className = 'inv-cell';
+  cell.textContent = item;
+  cell.title = 'A powerful tool!';
+  cell.addEventListener('click', () => {
+    cell.style.transform = 'scale(1.3) rotate(10deg)';
+    setTimeout(() => cell.style.transform = '', 200);
+  });
+  invGrid.appendChild(cell);
+});
+// Fill remaining cells to make a full grid
+for (let i = invItems.length; i < 36; i++) {
+  const cell = document.createElement('div');
+  cell.className = 'inv-cell';
+  invGrid.appendChild(cell);
+}
+
+// ===== RANDOM AMBIENT ACHIEVEMENTS =====
+const ambientAch = [
+  { icon: '⛏️', title: 'Getting Started!', desc: 'You scrolled the page!' },
+  { icon: '💎', title: 'Diamond Hunter!', desc: 'Found the skills section!' },
+  { icon: '🔮', title: 'Enchanted!', desc: 'Viewed a project!' },
+  { icon: '🌙', title: 'Night Owl!', desc: 'Toggled night mode!' },
+];
+let scrollAchieved = false;
+window.addEventListener('scroll', () => {
+  if (!scrollAchieved && window.scrollY > 300) {
+    scrollAchieved = true;
+    showAchievement('⛏️', 'Getting Started!', 'You scrolled the page!');
+  }
+});
+</script>
+
+</body>
+</html>
