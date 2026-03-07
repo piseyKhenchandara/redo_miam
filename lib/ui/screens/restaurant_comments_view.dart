@@ -12,15 +12,9 @@ class RestaurantCommentsView extends StatefulWidget {
 }
 
 class _RestaurantCommentsViewState extends State<RestaurantCommentsView> {
-  final List<String> comments = [
-    "I can't not beleive this is a greate resturant",
-    "not good",
-    "boring I will never comeback to this resturant",
-  ];
-
   void deleteComments(int index) {
     setState(() {
-      comments.removeAt(index);
+      widget.restaurant.comments.removeAt(index);
     });
   }
 
@@ -55,7 +49,10 @@ class _RestaurantCommentsViewState extends State<RestaurantCommentsView> {
                       ),
                       child: Chip(
                         avatar: Icon(Icons.star, size: 18),
-                        label: Text("4.7", textAlign: TextAlign.center),
+                        label: Text(
+                          widget.restaurant.averageRating.toStringAsFixed(1),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
                   ],
@@ -65,7 +62,7 @@ class _RestaurantCommentsViewState extends State<RestaurantCommentsView> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: comments.length,
+              itemCount: widget.restaurant.comments.length,
               itemBuilder: (context, index) {
                 return Container(
                   width: double.infinity,
@@ -79,7 +76,7 @@ class _RestaurantCommentsViewState extends State<RestaurantCommentsView> {
                     children: [
                       Expanded(
                         child: Text(
-                          comments[index],
+                          widget.restaurant.comments[index],
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -98,15 +95,23 @@ class _RestaurantCommentsViewState extends State<RestaurantCommentsView> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
+        onPressed: () async {
+          final result = await showDialog<Map<String, dynamic>>(
             context: context,
+            barrierDismissible: false,
             builder: (context) => RestaurantCommentsForm(),
           );
+          if (result != null) {
+            {
+              setState(() {
+                widget.restaurant.addComment(result['comment'] as String);
+                widget.restaurant.addRating(result['rating'] as int);
+              });
+            }
+          }
         },
         child: Icon(Icons.add),
       ),
     );
   }
 }
-

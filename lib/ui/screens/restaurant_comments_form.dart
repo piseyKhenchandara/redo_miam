@@ -11,8 +11,7 @@ class _RestaurantCommentsFormState extends State<RestaurantCommentsForm> {
   int _rating = 0;
 
   final TextEditingController _feedbackController = TextEditingController();
-
-  final _formKey = GlobalKey<FormState>();
+  final _formkey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -22,78 +21,70 @@ class _RestaurantCommentsFormState extends State<RestaurantCommentsForm> {
 
   @override
   Widget build(BuildContext context) {
-    
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Title
-              const Center(
-                child: Text(
-                  'How was your dinner?',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                ),
+      child: Container(
+        padding: EdgeInsets.all(10),
+        width: double.infinity,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("How was your dinner?", textAlign: TextAlign.center),
+            DropdownButtonFormField(
+              value: _rating,
+              items: List.generate(
+                6,
+                (i) => DropdownMenuItem(child: Text("$i"), value: i),
               ),
-              const SizedBox(height: 20),
+              onChanged: (val) {
+                setState(() {
+                  _rating = val ?? 0;
+                });
+              },
+            ),
 
-              // Rating dropdown (0 to 5)
-              DropdownButtonFormField<int>(
-                value: _rating,
-                items: List.generate(
-                  6,
-                  (i) => DropdownMenuItem(value: i, child: Text('$i')),
-                ),
-                onChanged: (val) => setState(() => _rating = val ?? 0),
-                decoration: const InputDecoration(
-                  border: UnderlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Feedback field — must be entered
-              TextFormField(
+            Form(
+              key: _formkey,
+              child: TextFormField(
                 controller: _feedbackController,
-                maxLines: 3,
                 maxLength: 50,
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty) {
-                    return 'Enter your feedback';
+
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return "Enter your feedback";
                   }
+
                   return null;
                 },
                 decoration: const InputDecoration(
-                  labelText: 'Any feedback?',
+                  labelText: "Any feedback?",
                   border: UnderlineInputBorder(),
-                  counterStyle: TextStyle(fontSize: 11, color: Colors.grey),
                 ),
               ),
-              const SizedBox(height: 8),
+            ),
 
-              // Comment button
-              Center(
-                child: TextButton(
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text("Cancel"),
+                ),
+                TextButton(
                   onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      Navigator.pop(context, _feedbackController.text.trim());
+                    if (_formkey.currentState!.validate()) {
+                      Navigator.pop(context, {
+                        "comment": _feedbackController.text.trim(),
+                        "rating": _rating,
+                      });
                     }
                   },
-                  child: const Text(
-                    'Comment',
-                    style: TextStyle(
-                      decoration: TextDecoration.underline,
-                      color: Colors.grey,
-                    ),
-                  ),
+                  child: Text("comment"),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );
