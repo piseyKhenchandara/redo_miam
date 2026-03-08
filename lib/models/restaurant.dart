@@ -5,7 +5,7 @@ class Restaurant {
   final String address;
   final RestaurantType type;
   final List<int> ratings;
-  final List<String> comments;
+  final List<String> comments = ['comment1', 'comment2', 'comment3'];
 
   Restaurant({
     required this.name,
@@ -13,8 +13,7 @@ class Restaurant {
     required this.type,
     List<int>? ratings,
     List<String>? comments,
-  }) : ratings = ratings ?? [],
-       comments = comments ?? [];
+  }) : ratings = ratings ?? [];
 
   double get averageRating {
     if (ratings.isEmpty) return 0;
